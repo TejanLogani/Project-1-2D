@@ -33,16 +33,24 @@ public class Enemy : MonoBehaviour
         EnemyRB = GetComponent<Rigidbody2D>();
     }
 
-    private void Update() {
+    private void Update()
+    {
         /* TODO 2.1: Call Move() if player is !null */
+        if (player != null)
+        {
+            Move();
+        }
 
     }
     #endregion
 
     #region Movement_functions
     private void Move()
-    { 
+    {
         /* TODO 2.1: Move the enemy towards the player */
+        Vector2 direction = player.position - EnemyRB.transform.position;
+        EnemyRB.linearVelocity = direction.normalized * moveSpeed;
+        
 
     }
     #endregion
@@ -56,6 +64,19 @@ public class Enemy : MonoBehaviour
             We will implement the damage in task 3.2.
             IMPORTANT: Destroy() should be the LAST function executed. Once a game object is destroyed, it will not execute any code beyond that line. 
         */
+        RaycastHit2D[] hits = Physics2D.CircleCastAll(transform.position, explosionRadius, Vector2.zero);
+        foreach (RaycastHit2D hit in hits)
+        {
+            if (hit.transform.CompareTag("Player"))
+            {
+                Debug.Log("Tons of Damage");
+                Instantiate(explosionObject, transform.position, transform.rotation);
+                hit.transform.GetComponent<PlayerController>().TakeDamage(explosionDamage);
+                FindObjectOfType<AudioManager>().Play("Explosion");
+                Destroy(this.gameObject);
+            }
+        }
+        
 
 
 
@@ -64,8 +85,15 @@ public class Enemy : MonoBehaviour
 
     }
 
-    private void OnCollisionEnter2D(Collision2D other) {
-       /* TODO 2.2: Call Explode() if enemy comes in contact with player */
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        /* TODO 2.2: Call Explode() if enemy comes in contact with player */
+        if (other.transform.CompareTag("Player"))
+        {
+            Explode();
+        }
+
+       
 
     }
     #endregion
@@ -73,8 +101,16 @@ public class Enemy : MonoBehaviour
     #region Health_functions
     public void TakeDamage(float value)
     {
-       /* TODO 3.1: Adjust currHealth when the enemy takes damage
-        IMPORTANT: What happens when the enemy's health reaches 0? */
+        /* TODO 3.1: Adjust currHealth when the enemy takes damage
+         IMPORTANT: What happens when the enemy's health reaches 0? */
+        currHealth -= value;
+        Debug.Log("enemy health: " + currHealth.ToString());
+        FindObjectOfType<AudioManager>().Play("EnemyHurt");
+
+        if (currHealth <= 0)
+        {
+            Die();
+        }
     }
 
     private void Die()
