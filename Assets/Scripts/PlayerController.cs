@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
 {
     #region Movement_variables
     public float moveSpeed = 3;
+    public float baseMoveSpeed = 3;
     float x_input;
     float y_input;
     #endregion
@@ -25,6 +26,14 @@ public class PlayerController : MonoBehaviour
     Animator anim;
     #endregion
 
+    #region Sprint_variables
+    public float sprintJuice;
+    public float sprintMoveSpeed;
+    float currSprintJuice;
+    public float juiceChangeRate; //per second
+    public Slider SprintGauge;
+    #endregion
+
     #region Unity_functions
     private void Awake()
     {
@@ -33,6 +42,8 @@ public class PlayerController : MonoBehaviour
         /* TODO 4.1: Set HPSlider.value to a ratio between the 
             player's current health and maximum health. */
         HPSlider.value = currHealth / maxHealth;
+        currSprintJuice = sprintJuice;
+        SprintGauge.value = currSprintJuice / sprintJuice;
 
         PlayerRB = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
@@ -50,6 +61,7 @@ public class PlayerController : MonoBehaviour
         y_input = Input.GetAxisRaw("Vertical");
 
         Move();
+        Sprint();
 
         if (Input.GetKeyDown(KeyCode.E))
         {
@@ -128,6 +140,30 @@ public class PlayerController : MonoBehaviour
         isAttacking = false;
     }
     
+    #endregion
+
+    #region Sprint_funcitons
+    private void Sprint()
+    {
+        if (Input.GetKey(KeyCode.LeftShift) && currSprintJuice > 0)
+        {
+            moveSpeed = sprintMoveSpeed;
+            currSprintJuice -= 2 * juiceChangeRate * Time.deltaTime;
+            SprintGauge.value = currSprintJuice / sprintJuice;
+        } else if (!Input.GetKey(KeyCode.LeftShift))
+        {
+            moveSpeed = baseMoveSpeed;
+            if  (currSprintJuice < sprintJuice)
+            {
+                currSprintJuice += juiceChangeRate * Time.deltaTime;
+                SprintGauge.value = currSprintJuice / sprintJuice;
+            }
+            
+        } else if (currSprintJuice <= 0)
+        {
+            moveSpeed = baseMoveSpeed;
+        }
+    }
     #endregion
 
     #region Movement_functions
